@@ -1,0 +1,341 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package rms;
+
+
+import javax.microedition.midlet.*;
+import javax.microedition.lcdui.*;
+import javax.microedition.rms.*;
+import java.util.*;
+import java.lang.*;
+
+public class Midlet extends MIDlet implements CommandListener,ItemStateListener{
+
+    private Form menu, add, delete, filter, sort, view;
+    private Display display;
+    private Command addBook, deleteBook, filterBook, sortBook, back, ok;
+    private TextField name, ISBN, author, yop, isbnToDelete;
+    private RecordStore record = null;
+    private List listOfBooks;
+    private ChoiceGroup choiceGroup,choiceGroup2, choiceGroup3;
+    private String selectedMenu = "ADD", categoryValue = "STORY";
+    private StringItem menuLabel, row, rowData;
+    private RecordEnumeration recordEnum;
+    public Midlet(){
+
+        menu = new Form("MENU");
+        add = new Form("ADD BOOKS");
+        delete = new Form("DELETE BOOKS");
+        filter = new Form("FILTER BOOKS");
+        sort = new Form("SORT BOOKS");
+        view = new Form("VIEW BOOKS");
+
+        name = new TextField("BOOK NAME: ","",50,TextField.PLAIN);
+        ISBN = new TextField("ISBN: ","",50,TextField.NUMERIC);
+        author = new TextField("AUTHOR: ","",50,TextField.PLAIN);
+        yop = new TextField("Year Of Publish: ","",50,TextField.NUMERIC);
+        isbnToDelete = new TextField("ISBN: ","",50,TextField.NUMERIC);
+
+        ok = new Command("OK",Command.OK,1);
+        back = new Command("BACK",Command.BACK,1);
+        addBook = new Command("ADD",Command.OK,1);
+        deleteBook = new Command("DELETE",Command.OK,1);
+        filterBook = new Command("FILTER",Command.OK,1);
+
+        choiceGroup = new ChoiceGroup("",Choice.POPUP);
+        choiceGroup.append("ADD",null);
+        choiceGroup.append("DELETE",null);
+        choiceGroup.append("FILTER",null);
+        choiceGroup.append("SORT",null);
+        choiceGroup.append("VIEW",null);
+
+        choiceGroup2 = new ChoiceGroup("CATEGORY",Choice.POPUP);
+        choiceGroup2.append("STORY",null);
+        choiceGroup2.append("TECH",null);
+        choiceGroup2.append("LIT",null);
+        choiceGroup2.append("WEEKLY",null);
+
+        choiceGroup3 = new ChoiceGroup("CATEGORY",Choice.POPUP);
+        choiceGroup3.append("STORY",null);
+        choiceGroup3.append("TECH",null);
+        choiceGroup3.append("LIT",null);
+        choiceGroup3.append("WEEKLY",null);
+
+        menuLabel = new StringItem("MENU","");
+        row = new StringItem(" Book     ISBN     Author     YOP     Category ","");
+        rowData = new StringItem("","");
+
+        try{
+            record = RecordStore.openRecordStore("LIBRARY", true );
+            }catch (Exception e){
+            printError(e.toString());
+        }
+
+        display = Display.getDisplay(this);
+    }
+
+    public void startApp() {
+
+        menu.append(choiceGroup);
+        menu.addCommand(ok);
+        menu.setItemStateListener(this);
+        menu.setCommandListener(this);
+        display.setCurrent(menu);
+
+        add.append(name);
+        add.append(ISBN);
+        add.append(author);
+        add.append(yop);
+        add.append(choiceGroup2);
+        add.addCommand(addBook);
+        add.addCommand(back);
+        add.setItemStateListener(this);
+        add.setCommandListener(this);
+
+
+        view.append(row);
+        view.append(rowData);
+        view.addCommand(back);
+        view.setCommandListener(this);
+
+        delete.append(isbnToDelete);
+        delete.addCommand(back);
+        delete.addCommand(deleteBook);
+        delete.setCommandListener(this);
+
+        filter.append(choiceGroup3);
+        filter.addCommand(filterBook);
+        filter.addCommand(back);
+        filter.setItemStateListener(this);
+        filter.setCommandListener(this);
+
+    }
+
+    public void pauseApp() {
+    }
+
+    public void destroyApp(boolean unconditional) {
+    }
+
+    public void commandAction(Command c, Displayable display){
+
+        if(c == ok){
+            if(this.selectedMenu.equals("ADD")){
+                this.display.setCurrent(add);
+            }
+            else if(this.selectedMenu.equals("DELETE")){
+                this.display.setCurrent(delete);
+            }
+            else if(this.selectedMenu.equals("FILTER")){
+                categoryValue = "STORY";
+                this.display.setCurrent(filter);
+            }
+            else if(this.selectedMenu.equals("SORT")){
+                Comparator comparator = new Comparator();
+                rowData.setText("");
+                try{
+                    recordEnum = record.enumerateRecords(null, comparator, true);
+                    String allData = "";
+                    while (recordEnum.hasNextElement()){
+                        String[] rowValues = split(new String(recordEnum.nextRecord()),"$");
+                        String rowVal = "";
+                        for(int i=0;i<=rowValues.length;i++){
+                            if(rowValues[i]==null)
+                                break;
+                            rowVal+=rowValues[i]+"     ";
+                        }
+                        allData+=rowVal+"\n";
+                    }
+                    rowData.setText(allData);
+                    allData="";
+                }
+                catch (Exception e) {
+                    printError(e.toString());
+                }
+                this.display.setCurrent(view);
+            }
+            else if(this.selectedMenu.equals("VIEW")){
+                rowData.setText("");
+                try{
+                    recordEnum = record.enumerateRecords(null, null, true);
+                    String allData = "";
+                    while (recordEnum.hasNextElement()){
+                        String[] rowValues = split(new String(recordEnum.nextRecord()),"$");
+                        String rowVal = "";
+                        for(int i=0;i<=rowValues.length;i++){
+                            if(rowValues[i]==null)
+                                break;
+                            rowVal+=rowValues[i]+"     ";
+                        }
+                        allData+=rowVal+"\n";
+                    }
+                    rowData.setText(allData);
+                    allData="";
+                }
+                catch (Exception e) {
+                    printError(e.toString());
+                }
+                this.display.setCurrent(view);
+            }
+        }
+        if (c == back ) {
+            this.display.setCurrent(menu);
+        }
+        if (c == addBook) {
+            String bookDetails = name.getString()+"$"+ISBN.getString()+"$"+author.getString()+"$"+yop.getString()+"$"+this.categoryValue+"$";
+            byte[] data = bookDetails.getBytes();
+            String news = new String(data);
+            try{
+                record.addRecord(data, 0, data.length);
+                this.display.setCurrent(menu);
+            }
+            catch(Exception e){
+                printError(e.toString());
+            }
+            name.setString("");
+            ISBN.setString("");
+            author.setString("");
+            yop.setString("");
+
+        }
+        if(c == deleteBook) {
+            String isbnToDeleteValue = isbnToDelete.getString();
+                try{
+                    recordEnum = record.enumerateRecords(null, null, true);
+                    String allData = "";
+                    do{
+                        int rid = recordEnum.nextRecordId();
+
+                        String[] rowValues = split(new String(record.getRecord(rid)),"$");
+                        String rowVal = "";
+                        if(rowValues[1].equals(isbnToDeleteValue)){
+                            record.deleteRecord(rid);
+                        }
+                    }while (recordEnum.hasNextElement());
+
+                }
+                catch (Exception e){
+                    printError(e.toString());
+                }
+                isbnToDelete.setString("");
+                rowData.setText("");
+                try{
+                    recordEnum = record.enumerateRecords(null, null, true);
+                    String allData = "";
+                    while (recordEnum.hasNextElement()){
+                        String[] rowValues = split(new String(recordEnum.nextRecord()),"$");
+                        String rowVal = "";
+                        for(int i=0;i<=rowValues.length;i++){
+                            if(rowValues[i]==null)
+                                break;
+                            rowVal+=rowValues[i]+"     ";
+                        }
+                        allData+=rowVal+"\n";
+                    }
+                    rowData.setText(allData);
+                    allData="";
+                }
+                catch (Exception e) {
+                    printError(e.toString());
+                }
+                this.display.setCurrent(view);
+        }
+        else if (c == filterBook ) {
+            rowData.setText("");
+            FilterBook filterBookClass = new FilterBook(this.categoryValue);
+                try{
+                    recordEnum = record.enumerateRecords(filterBookClass, null, true);
+                    String allData = "";
+                    while (recordEnum.hasNextElement()){
+                        String[] rowValues = split(new String(recordEnum.nextRecord()),"$");
+                        String rowVal = "";
+                        for(int i=0;i<=rowValues.length;i++){
+                            if(rowValues[i]==null)
+                                break;
+                            rowVal+=rowValues[i]+"     ";
+                        }
+                        allData+=rowVal+"\n";
+                    }
+                    rowData.setText(allData);
+                    allData="";
+                }
+                catch (Exception e) {
+                    printError(e.toString());
+                }
+                this.display.setCurrent(view);
+
+        }
+    }
+
+    public void itemStateChanged(Item item){
+        if(item == choiceGroup){
+            selectedMenu = choiceGroup.getString(choiceGroup.getSelectedIndex());
+        }
+        else if(item == choiceGroup2){
+            categoryValue = choiceGroup2.getString(choiceGroup2.getSelectedIndex());
+        }
+        else if(item == choiceGroup3){
+            categoryValue = choiceGroup3.getString(choiceGroup3.getSelectedIndex());
+        }
+    }
+
+    public void printError(String error){
+        Alert alert = new Alert("ERROR OCCURED",error,null,AlertType.ERROR);
+        alert.setTimeout(5000);
+        this.display.setCurrent(alert,menu);
+    }
+
+    public String[] split (String string,String delimiter) {
+        String[] valueString = new String[100];
+        char[] charArray = string.toCharArray();
+        int j=0;
+        String emp = "";
+        for(int i=0;i<string.length();i++)
+        {
+            if(charArray[i]!='$'){
+                emp+=charArray[i];
+            }
+            else {
+                valueString[j] = emp;
+                j++;
+                emp="";
+            }
+        }
+        return valueString;
+    }
+
+    class FilterBook implements RecordFilter{
+
+        String search = null;
+        public FilterBook(String s) {
+            this.search = s.toLowerCase();
+        }
+
+        public boolean matches (byte[] str ){
+            String[] values = split(new String(str),"$");
+            String temp = values[4].toLowerCase();
+            if(temp.equals(search)==true)
+                return true;
+            return false;
+        }
+    }
+
+    class Comparator implements RecordComparator {
+
+        public int compare(byte[] record1, byte[] record2){
+            String[] value1 = split(new String(record1),"$");
+            String[] value2 = split(new String(record2),"$");
+            int yop1 = Integer.parseInt(value1[3]);
+            int yop2 = Integer.parseInt(value2[3]);
+            if (yop1 == yop2)
+                return RecordComparator.EQUIVALENT;
+            else if (yop1 < yop2)
+                return RecordComparator.PRECEDES;
+            else
+                return RecordComparator.FOLLOWS;
+        }
+    }
+}

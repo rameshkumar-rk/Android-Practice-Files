@@ -1,0 +1,206 @@
+package com.example.studentsdb;
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.database.Cursor;
+import android.os.Bundle;
+import android.text.InputType;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import java.util.Calendar;
+
+
+public class MainActivity extends AppCompatActivity {
+    DatabaseHelper myDb;
+    EditText editName,editSurname,editMarks ,editTextId,dob,mob,adr;
+    Button btnAddData;
+    Button btnviewAll;
+    Button btnDelete,btnSearch;
+//DatePicker pk;
+    Button btnviewUpdate;
+    DatePickerDialog picker;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        myDb = new DatabaseHelper(this);
+        mob=(EditText)findViewById(R.id.mob);
+        adr=(EditText)findViewById(R.id.adr);
+        dob = (EditText) findViewById(R.id.dob);
+        editName = (EditText) findViewById(R.id.editText_name);
+        editSurname = (EditText) findViewById(R.id.editText_surname);
+        editMarks = (EditText) findViewById(R.id.editText_Marks);
+        editTextId = (EditText) findViewById(R.id.editText_id);
+        btnAddData = (Button) findViewById(R.id.button_add);
+        btnviewAll = (Button) findViewById(R.id.button_viewAll);
+        btnviewUpdate = (Button) findViewById(R.id.button_update);
+        btnDelete = (Button) findViewById(R.id.button_delete);
+        btnSearch = (Button) findViewById(R.id.View);
+  //      pk = (DatePicker) findViewById(R.id.datep);
+        AddData();
+        viewAll();
+        view();
+        UpdateData();
+        DeleteData();
+    //    pk.setVisibility(View.GONE);
+        dob.setInputType(InputType.TYPE_NULL);
+        dob.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Calendar cldr = Calendar.getInstance();
+                int day = cldr.get(Calendar.DAY_OF_MONTH);
+                int month = cldr.get(Calendar.MONTH);
+                int year = cldr.get(Calendar.YEAR);
+      //          pk.setVisibility(View.VISIBLE);
+                // date picker dialog
+                picker = new DatePickerDialog(MainActivity.this,
+                        new DatePickerDialog.OnDateSetListener() {
+                            @Override
+                            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                                dob.setText(dayOfMonth + "/" + (monthOfYear + 1) + "/" + year);
+                            }
+                        }, year, month, day);
+                picker.show();
+            }
+        });
+        //pk.setVisibility(View.GONE);
+    }
+
+    public void view(){
+        btnSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Cursor res = myDb.getData(editTextId.getText().toString());
+
+                if(res.getCount() == 0) {
+                    // show message
+                    showMessage("Error","Nothing found");
+                    return;
+                }
+
+                StringBuffer buffer = new StringBuffer();
+                while (res.moveToNext()) {
+                   // if(res.getString(0).toString().equals(editTextId.getText().toString())) {
+                        buffer.append("Rollno :" + res.getString(0) + "\n");
+                        buffer.append("Name :" + res.getString(1) + "\n");
+                        buffer.append("Department :" + res.getString(2) + "\n");
+                        buffer.append("CGPA :" + res.getString(3) + "\n\n");
+                    buffer.append("DOB :"+ res.getString(4)+"\n\n");
+                    buffer.append("MOBILE NO :"+ res.getString(5)+"\n\n");
+                    buffer.append("ADDRESS :"+ res.getString(6)+"\n\n");
+
+                    //}
+                }
+                showMessage("Data",buffer.toString());
+            }
+        });
+    }
+    public void DeleteData() {
+        btnDelete.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Integer deletedRows = myDb.deleteData(editTextId.getText().toString());
+                        if(deletedRows > 0)
+                            Toast.makeText(MainActivity.this,"Data Deleted",Toast.LENGTH_LONG).show();
+                        else
+                            Toast.makeText(MainActivity.this,"Data not Deleted",Toast.LENGTH_LONG).show();
+                    }
+                }
+        );
+    }
+    public void UpdateData() {
+        btnviewUpdate.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        boolean isUpdate = myDb.updateData(editTextId.getText().toString(),
+                                editName.getText().toString(),
+                                editSurname.getText().toString(),editMarks.getText().toString(),dob.getText().toString(),mob.getText().toString(),adr.getText().toString());
+                        if(isUpdate == true)
+                            Toast.makeText(MainActivity.this,"Data Update",Toast.LENGTH_LONG).show();
+                        else
+                            Toast.makeText(MainActivity.this,"Data not Updated",Toast.LENGTH_LONG).show();
+
+                    }
+
+                }
+        );
+    }
+    public  void AddData() {
+        btnAddData.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        boolean isInserted = myDb.insertData(editTextId.getText().toString(),editName.getText().toString(),
+                                editSurname.getText().toString(),
+                                editMarks.getText().toString() ,dob.getText().toString(),mob.getText().toString(),adr.getText().toString());
+                        if(isInserted == true)
+                            Toast.makeText(MainActivity.this,"Data Inserted",Toast.LENGTH_LONG).show();
+                        else
+                            Toast.makeText(MainActivity.this,"Data not Inserted",Toast.LENGTH_LONG).show();
+                    }
+
+                }
+        );
+    }
+
+    public void viewAll() {
+        btnviewAll.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Cursor res = myDb.getAllData();
+                        if(res.getCount() == 0) {
+                            // show message
+                            showMessage("Error","Nothing found");
+                            return;
+                        }
+
+                        StringBuffer buffer = new StringBuffer();
+                        while (res.moveToNext()) {
+                            buffer.append("Rollno :"+ res.getString(0)+"\n");
+                            buffer.append("Name :"+ res.getString(1)+"\n");
+                            buffer.append("Department :"+ res.getString(2)+"\n");
+                            buffer.append("CGPA :"+ res.getString(3)+"\n\n");
+                            buffer.append("DOB :"+ res.getString(4)+"\n\n");
+                            buffer.append("MOBILE NO :"+ res.getString(5)+"\n\n");
+                            buffer.append("ADDRESS :"+ res.getString(6)+"\n\n");
+
+                        }
+
+                        // Show all data
+                        showMessage("Data",buffer.toString());
+                    }
+                }
+        );
+    }
+
+    /*public String getCurrentDate(){
+        StringBuilder builder=new StringBuilder();;
+        builder.append((pk.getMonth() + 1)+"/");//month is 0 based
+        builder.append(pk.getDayOfMonth()+"/");
+        builder.append(pk.getYear());
+        return builder.toString();
+    }*/
+
+    public void showMessage(String title,String Message){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setTitle(title);
+        builder.setMessage(Message);
+        builder.show();
+    }
+
+
+
+}
+

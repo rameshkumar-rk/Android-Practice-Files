@@ -1,0 +1,157 @@
+set val(chan)           Channel/WirelessChannel;
+set val(prop)           Propagation/TwoRayGround;
+set val(netif)          Phy/WirelessPhy;
+set val(mac)            Mac/802_11;
+set val(ifq)            DropTail;
+set val(ll)                 LL;
+set val(ant)              Antenna/OmniAntenna;
+set val(ifqlen)           50;
+set val(nn)                9;
+set val(rp)               AODV;
+set val(x)                500;
+set val(y)                400;
+set val(stop)           1000;
+
+set ns              [new Simulator]
+
+set tracefd       [open tcp.tr w]
+set namtrace      [open tcp.nam w]   
+
+$ns trace-all $tracefd
+$ns namtrace-all-wireless $namtrace $val(x) $val(y)
+
+set topo       [new Topography]
+
+$topo load_flatgrid $val(x) $val(y)
+
+set god_ [create-god $val(nn)]
+
+$ns node-config -adhocRouting $val(rp) \
+                -llType $val(ll) \
+                -macType $val(mac) \
+                -ifqType $val(ifq) \
+                -ifqLen $val(ifqlen) \
+                -antType $val(ant) \
+                -propType $val(prop) \
+                -phyType $val(netif) \
+                -channelType $val(chan) \
+                -topoInstance $topo \
+                -agentTrace ON \
+                -routerTrace ON \
+                -macTrace OFF \
+                -movementTrace ON
+                   
+for {set i 0} {$i < 8 } { incr i } {
+            set node_($i) [$ns node]     
+      }
+      for {set i 0} {$i < 8  } {incr i } {
+            $node_($i) color blue
+            $ns at 0.0 "$node_($i) color blue"
+      }
+
+$node_(0) color red
+$ns at 0.5 "$node_(0) color red"
+
+$node_(7) color red
+$ns at 0.5 "$node_(7) color red"
+
+for {set i 0} {$i < $val(nn) } { incr i } {
+	set xx [expr rand()*500]
+        set yy [expr rand()*400]
+        $node_($i) set X_ $xx
+        $node_($i) set Y_ $yy
+}
+
+for {set i 0} {$i < $val(nn)} { incr i } {
+	$ns initial_node_pos $node_($i) 30
+}
+
+for {set i 0} {$i < $val(nn) } { incr i } {
+    $ns at $val(stop) "$node_($i) reset";
+}
+
+$ns at 0.0 "destination"
+proc destination {} {
+      global ns val node_
+      set time 1.0
+      set now [$ns now]
+      for {set i 0} {$i<$val(nn)} {incr i} {
+            set xx [expr rand()*500]
+            set yy [expr rand()*400]
+            $ns at $now "$node_($i) setdest $xx $yy 10.0"
+      }
+      $ns at [expr $now+$time] "destination"
+}
+
+set tcp1 [new Agent/TCP]
+$ns attach-agent $node_(0) $tcp1
+
+set ftp [new Application/FTP]
+$ftp attach-agent $tcp1
+
+set sink1 [new Agent/TCPSink]
+$ns attach-agent $node_(7) $sink1
+
+$ns connect $tcp1 $sink1
+
+$ns at 10.0 "$node_(0) setdest 50.0 90.0 0.0"
+$ns at 50.0 "$node_(0) setdest 50.0 10.0 0.0"
+
+$ns at 0.5 "$ftp start"
+$ns at 500 "$ftp stop"
+
+$ns at 500 "stop"
+
+$ns at $val(stop) "stop"
+
+
+proc stop {} {
+    global ns tracefd namtrace
+    $ns flush-trace
+    close $tracefd
+    close $namtrace
+    exec nam tcp.nam &
+}
+
+
+exec awk -f thr.awk tcp.tr
+$ns run
+
+
+
+
+
+
+
+BEGIN {
+
+printf("\nThroughPut Calculation");
+sent=0;
+recvd=0;
+pkts=0;
+throughput=0;
+}
+{
+  if($1=="r" && $7=="tcp" && $3=="_7_")
+   {
+    pkts=pkts+$8
+   }
+
+  if($1=="s" && $4=="AGT")
+  {
+	  sent++;
+  }
+  else if($1=="r" && $4=="AGT")
+  {
+	  recvd++;
+  }
+}
+END{
+ 
+ throughput=pkts*8/ $2 /1000000;
+ printf ("\n Throughput:%.2f\n",throughput);
+ printf("\nPackets Sent: %d",sent);
+ printf("\nPackets Received: %d",recvd);
+}
+
+

@@ -1,0 +1,407 @@
+package com.example.railway;
+
+import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.Spinner;
+import android.widget.Toast;
+
+
+import com.example.railway.railway_reservation.R;
+
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+private Button next;
+private String src,dest,tno,nop;
+private SeekBar seekBar;
+String[] train_no={"TRN12345","TRN14323"};
+String[] source={"Trichy","Nagercoil"};
+String[] destination={"Coimbatore","chennai"};
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        next=(Button)findViewById(R.id.button);
+        SeekBar seekBar1 = (SeekBar)findViewById(R.id.seekBar);
+
+
+
+       seekBar1.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int progress = 0;
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progresValue, boolean fromUser) {
+                progress = progresValue;
+                nop=Integer.toString(progress);
+                Toast.makeText(getApplicationContext(), nop.toString(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+
+
+
+        Spinner train_no_spin=(Spinner)findViewById(R.id.spinner);
+        train_no_spin.setOnItemSelectedListener(this);
+
+        Spinner source_spin=(Spinner)findViewById(R.id.spinner2);
+        source_spin.setOnItemSelectedListener(this);
+
+        Spinner destination_spin=(Spinner)findViewById(R.id.spinner3);
+        destination_spin.setOnItemSelectedListener(this);
+
+        ArrayAdapter train_no_aa=new ArrayAdapter(this,android.R.layout.simple_spinner_item,train_no);
+        train_no_aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        train_no_spin.setAdapter(train_no_aa);
+
+        ArrayAdapter source_aa=new ArrayAdapter(this,android.R.layout.simple_spinner_item,source);
+        source_aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        source_spin.setAdapter(source_aa);
+
+        ArrayAdapter destination_aa=new ArrayAdapter(this,android.R.layout.simple_spinner_item,destination);
+        destination_aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        destination_spin.setAdapter(destination_aa);
+
+        next.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Intent i=new Intent(getApplicationContext(), Main2Activity.class);
+                Bundle b=new Bundle();
+                b.putString("train_no",tno);
+                b.putString("source",src);
+                b.putString("destination",dest);
+                b.putString("nop",nop);
+                i.putExtras(b);
+                startActivity(i);
+            }
+        });
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+        tno=train_no[i];
+        src=source[i];
+        dest=destination[i];
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
+
+    }
+}
+
+
+
+package com.example.railway;
+
+import android.app.DatePickerDialog;
+import android.content.Intent;
+import android.net.Uri;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
+import com.example.railway.railway_reservation.R;
+
+import java.util.Calendar;
+
+public class Main2Activity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+private String Noofseats,phone_number,cls,date;
+private EditText pass,pno;
+private TextView t10;
+int no,c_year,c_month,c_day;
+String[] classes={"First class","Second class"};
+String c="";
+private Button confirm,date_button;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main2);
+        confirm=(Button)findViewById((R.id.button3));
+        date_button=(Button)findViewById((R.id.button2));
+        t10=(TextView) findViewById(R.id.textView10);
+        pass=(EditText)findViewById(R.id.editText3);
+        pno=(EditText)findViewById(R.id.editText);
+
+
+        Spinner class_spin=(Spinner)findViewById(R.id.spinner4);
+        class_spin.setOnItemSelectedListener(this);
+        ArrayAdapter class_aa=new ArrayAdapter(this,android.R.layout.simple_spinner_item,classes);
+        class_aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        class_spin.setAdapter(class_aa);
+
+
+        date_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final Calendar c = Calendar.getInstance();
+                c_year=(c.get(Calendar.YEAR));
+                c_month=((c.get(Calendar.MONTH) + 1) );
+                c_day=(c.get(Calendar.DAY_OF_MONTH));
+                DatePickerDialog d=new DatePickerDialog(Main2Activity.this, new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
+
+                        date=Integer.toString(i2)+"-"+Integer.toString(i1)+"-"+Integer.toString(i);
+                        t10.setText(date);
+                    }
+                },c_year,c_month,c_day);
+                d.show();
+            }
+        });
+
+        confirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String no1=(pno.getText().toString());
+
+              Noofseats="No of seats: "+pass.getText().toString();
+
+                phone_number="Mobile No : "+no1;
+                cls="Class : "+c.toString();
+                date=" Date : "+date;
+                Bundle b=getIntent().getExtras();
+                String tno="Train No : "+b.getString("train_no");
+                String nop=b.getString("nop");
+                String src=b.getString("source");
+                int no=Integer.parseInt(nop);
+
+
+                int total;
+
+                if(src.compareTo("Madurai")==0)
+                {
+                    total=no*150;
+                }
+                else
+                {
+                    total=no*225;
+                }
+                String amount="Amount : "+Integer.toString(total);
+                String msg=Noofseats+","+phone_number+","+cls+","+date+","+tno+","+amount+" ";
+
+
+
+                Intent i1 = new Intent(Intent.ACTION_VIEW,Uri.parse(("sms:"+no1.toString())));
+                i1.putExtra("sms_body",msg);
+                startActivity(i1);
+
+
+
+            }
+        });
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+        c=classes[i];
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
+
+    }
+}
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.railway.MainActivity">
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="INDIAN RAILWAYS"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.549"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.093" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Train No"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.205" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="No of Passengers"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.244"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.373" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Source"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.194"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.529" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Destination"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.211"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.707" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="NEXT"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.872" />
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="140dp"
+        android:layout_height="25dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.828"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.208" />
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:max="15"
+        android:layout_width="135dp"
+        android:layout_height="28dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.811"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.361" />
+
+    <Spinner
+        android:id="@+id/spinner2"
+        android:layout_width="144dp"
+        android:layout_height="26dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.825"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.537" />
+
+    <Spinner
+        android:id="@+id/spinner3"
+        android:layout_width="144dp"
+        android:layout_height="32dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.843"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.727" />
+
+</android.support.constraint.ConstraintLayout>
+
+

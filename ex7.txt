@@ -1,0 +1,363 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package mobileapplication1;
+
+
+import javax.microedition.lcdui.*;
+import javax.microedition.midlet.*;
+import java.util.Date;
+
+/**
+ * @author hp
+ */
+public class Midlet extends MIDlet implements CommandListener {
+
+    
+    private Display disp;
+    private Form loginform,depform,withform,miniform,transform,rateform;
+    private Command back,back1,dep,with,trans;
+    private TextField tuser,tpass,tdep,twith,tracnt,ttrans;
+    private TextField tacnt1,tbal1,tacnt2,tbal2,tacnt3,tbal3;
+    private Command exit,login;
+    private List mainlist;
+    private Ticker withinst,twel,transinst;
+    private Date date;
+    private Alert alert;
+    private Gauge gauge;
+
+    String uid[]={"1000","1001","1234","1234"};
+    static double bal[]={1000,1000,1000,1000};
+    
+    String upass[]={"1234","1234"};
+    
+    String statement="";
+    int index=-1;
+    
+    
+    
+    public Midlet()
+    {
+        disp=Display.getDisplay(this);
+        loginform=new Form("Login Credentials");
+        tuser=new TextField("Enter Username ","",30,TextField.ANY);
+        tpass=new TextField("Enter Password ","",30,TextField.PASSWORD);
+        login=new Command("Login",Command.SCREEN,1);
+        exit = new Command("Exit", Command.EXIT,1 );
+        back1=new Command("Back",Command.BACK,2);
+        
+        loginform.append(tuser);
+        loginform.append(tpass);
+        loginform.addCommand(login);
+        loginform.addCommand(exit);
+        loginform.setCommandListener(this);
+
+        
+        mainlist=new List("Main menu",Choice.IMPLICIT);
+        mainlist.append("Deposit",null);
+        mainlist.append("Withdraw",null);
+        mainlist.append("Mini Statement",null);
+        mainlist.append("Transfer Money",null);
+        mainlist.append("Rate this Application",null);
+        
+        mainlist.addCommand(back1);
+        mainlist.setCommandListener(this);
+        
+        twel=new Ticker("TMB Bank");
+        mainlist.setTicker(twel);
+        
+        back=new Command("Back",Command.BACK,2);
+        
+        
+        //**************DEPOSIT****************  
+        
+        depform=new Form("Deposit");
+        tacnt1=new TextField("Account Number: ","",30,TextField.UNEDITABLE);
+        tbal1=new TextField("Your Balance ","",30,TextField.UNEDITABLE);
+        tdep=new TextField("Enter Amount to Deposit ","",30,TextField.NUMERIC);
+        dep=new Command("Deposit",Command.OK,1);
+        
+        depform.append(tacnt1);
+        depform.append(tbal1);
+        depform.append(tdep);
+        depform.addCommand(dep);
+        depform.addCommand(back);
+        depform.setCommandListener(this);
+        
+        
+        //**************WITHDRAW****************  
+        
+        withform=new Form("Withdraw");
+        tacnt2=new TextField("Account Number: ","",30,TextField.UNEDITABLE);
+        tbal2=new TextField("Your Balance ","",30,TextField.UNEDITABLE);
+        twith=new TextField("Enter Amount to Withdraw ","",30,TextField.NUMERIC);
+        with=new Command("Withdraw",Command.OK,1);
+        
+        withform.append(tacnt2);
+        withform.append(tbal2);
+        withform.append(twith);
+        withform.addCommand(with);
+        withform.addCommand(back);
+        withform.setCommandListener(this);
+        
+        withinst=new Ticker("Minimum Balance is Rs.500");
+        withform.setTicker(withinst);
+        
+        
+        //**************TRANSFER MONEY****************  
+        
+        transform=new Form("Transfer Money");
+        
+        tacnt3=new TextField("Account Number: ","",30,TextField.UNEDITABLE);
+        StringItem item = new StringItem("UserId: ", "sandeep15284@rediffmail.com");
+        tbal3=new TextField("Your Balance ","",30,TextField.UNEDITABLE);
+        tracnt=new TextField("Recipient Account Number: ","",30,TextField.ANY);
+        
+        ttrans=new TextField("Enter Amount to Transfer ","",30,TextField.NUMERIC);
+        trans=new Command("Transfer",Command.OK,1);
+       
+        transform.append(tacnt3);
+        transform.append(tbal3);
+        transform.append(tracnt);
+        transform.append(ttrans);
+        transform.addCommand(trans);
+        transform.addCommand(back);
+        transform.setCommandListener(this);
+        
+        
+        //**************RATE THIS APPLICATION****************  
+        rateform=new Form("Rating Section");
+        gauge = new Gauge("Rate this Banking Application", true, 10, 0);
+        rateform.addCommand(back);
+        String msg = String.valueOf(gauge.getValue());
+        rateform.setCommandListener(this);
+        rateform.append(gauge);
+        
+        
+    }
+    public void startApp() {
+        disp.setCurrent(loginform);
+    }
+    
+    public void pauseApp() {
+    }
+    
+    public void destroyApp(boolean unconditional) {
+    }
+
+    public void commandAction(Command c, Displayable d) {
+        if(c==exit)
+        {
+            destroyApp(false);
+            notifyDestroyed();
+        }
+        
+        if(c==login)
+        {
+            String user=tuser.getString();
+            for(int i=0;i<uid.length;i++)
+            {
+                if((uid[i].equals(user))&&(upass[i].equals("1234")))
+                {
+                    index=i;
+                    break;
+                }
+                
+                else
+                    index=-1;
+            }
+            if(index==-1)
+            {
+//                Ticker tlogin=new Ticker("Invalid Username or Password");
+//                loginform.setTicker(tlogin);
+//            
+            alert = new Alert("Invalid Credentials","Invalid Credentials",null,AlertType.WARNING);
+            alert.setTimeout(Alert.FOREVER);
+            disp.setCurrent(alert);
+            }
+            else
+            {
+                
+            //**************MINI STATEMENT****************  
+        
+             miniform=new Form("Mini Statement");
+             miniform.addCommand(back);
+             miniform.setCommandListener(this);
+                statement="Account Number: "+uid[index]+"\n*****Transaction Details*****\n";
+                
+                miniform.append(statement);
+        
+                tuser.setString("");
+                tpass.setString("");
+                disp.setCurrent(mainlist);
+                tacnt1.setString(uid[index]);
+                tbal1.setString(String.valueOf(bal[index]));
+                
+                tacnt2.setString(uid[index]);
+                tbal2.setString(String.valueOf(bal[index]));
+                
+                tacnt3.setString(uid[index]);
+                tbal3.setString(String.valueOf(bal[index]));
+            }
+        }
+        
+        if(c==dep)
+        {
+            double amt=Double.parseDouble(tdep.getString());
+            bal[index]+=amt;
+            
+            tacnt1.setString(uid[index]);
+            tbal1.setString(String.valueOf(bal[index]));
+            tbal2.setString(String.valueOf(bal[index]));
+            tbal3.setString(String.valueOf(bal[index]));
+            
+            date = new Date();
+            
+            statement=uid[index]+" deposited "+String.valueOf(amt)+ "on "+date.toString()+"\n";
+            miniform.append(statement);
+            
+            tdep.setString("");
+            alert = new Alert("Money Transaction", "Deposited Succesfully", null, null);
+           
+            alert.setTimeout(Alert.FOREVER);
+
+            disp.setCurrent(alert);
+
+           // disp.setCurrent(mainlist);
+        }
+        
+        if(c==with)
+        {
+            double amt=Double.parseDouble(twith.getString());
+            
+            if(amt<bal[index]-500)
+            {    
+            bal[index]-=amt;
+            
+            tacnt2.setString(uid[index]);
+            tbal2.setString(String.valueOf(bal[index]));
+            tbal1.setString(String.valueOf(bal[index]));
+            tbal3.setString(String.valueOf(bal[index]));
+            
+            
+            date = new Date();
+            
+            statement=uid[index]+" Withdrawn "+String.valueOf(amt)+ "on "+date.toString()+"\n";
+            miniform.append(statement);
+        
+            twith.setString("");
+            alert = new Alert("Money Transaction", "Withdraw Successful", null, null);
+            alert.setTimeout(Alert.FOREVER);
+
+            disp.setCurrent(alert);
+
+  
+           // disp.setCurrent(mainlist);
+            }
+            else
+            {
+//                withinst=new Ticker("Insufficient Balance... Minimum Balance Should be Rs.500");
+//                withform.setTicker(withinst);
+//            
+            alert = new Alert("Low Balance","Insufficient Balance...",null,AlertType.WARNING);
+            alert.setTimeout(Alert.FOREVER);
+            disp.setCurrent(alert);
+                
+            }
+        }
+        
+        
+        if(c==trans)
+        {
+            int ind=-1;
+            String rec=tracnt.getString();
+            double amt=Double.parseDouble(ttrans.getString());
+            
+            for(int i=0;i<uid.length;i++)
+            {
+                if((uid[i].equals(rec)))
+                {
+                    ind=i;
+                    break;
+                }
+                
+                else
+                    ind=-1;
+            }
+            
+            if(amt<bal[index]-500)
+            {    
+            bal[index]-=amt;
+            bal[ind]+=amt;
+            
+            tacnt3.setString(uid[index]);
+            tbal3.setString(String.valueOf(bal[index]));
+            
+            tbal1.setString(String.valueOf(bal[index]));
+            tbal2.setString(String.valueOf(bal[index]));
+            
+            
+             date = new Date( );
+            
+             statement=uid[index]+" Transfered "+String.valueOf(amt)+ " to " +uid[ind]+" on "+date.toString()+"\n";
+            
+            miniform.append(statement);
+        
+            alert = new Alert("Money Transaction", "Transferred Succesfully",null,AlertType.WARNING);
+            alert.setTimeout(Alert.FOREVER);
+            disp.setCurrent(alert);
+            tracnt.setString("");
+            ttrans.setString("");
+            
+            //disp.setCurrent(mainlist);
+            }
+            else
+            {
+//                transinst=new Ticker("Insufficient Balance... Minimum Balance Should be Rs.500");
+//                transform.setTicker(transinst);
+//          
+            alert = new Alert("Low Balance","Insufficient Balance... Minimum Balance Should be Rs.500",null,AlertType.WARNING);
+            alert.setTimeout(Alert.FOREVER);
+            disp.setCurrent(alert);
+            }
+        }
+        
+        
+        if(c==List.SELECT_COMMAND)
+        {
+            String opt=mainlist.getString(mainlist.getSelectedIndex());
+            if(opt.equals("Deposit"))
+            {
+                disp.setCurrent(depform);
+            }
+            if(opt.equals("Withdraw"))
+            {
+                disp.setCurrent(withform);
+            }
+            if(opt.equals("Mini Statement"))
+            {
+                disp.setCurrent(miniform);
+            }
+            if(opt.equals("Transfer Money"))
+            {
+                disp.setCurrent(transform);
+            }
+            if(opt.equals("Rate this Application"))
+            {
+                disp.setCurrent(rateform);
+            }
+        }
+        if(c==back)
+        {
+            disp.setCurrent(mainlist);
+        }
+        if(c==back1)
+        {
+            disp.setCurrent(loginform);
+        }
+       // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+   
+} 
